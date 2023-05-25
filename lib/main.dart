@@ -1,10 +1,13 @@
-// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, prefer_const_literals_to_create_immutables, avoid_unnecessary_containers, sized_box_for_whitespace
+// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, prefer_const_literals_to_create_immutables, avoid_unnecessary_containers, sized_box_for_whitespace, deprecated_member_use
 
 import 'package:flutter/material.dart';
+import 'package:pennywise/widget/chart.dart';
 import 'package:pennywise/widget/transaction_list.dart';
 import './widget/new_transactionList.dart';
 import 'package:intl/intl.dart';
 import 'models/transaction.dart';
+import './widget/chart.dart';
+import 'package:uuid/uuid.dart';
 
 void main() => runApp(
       MaterialApp(
@@ -12,20 +15,23 @@ void main() => runApp(
         theme: ThemeData(
           primarySwatch: Colors.purple,
           accentColor: Colors.purple[100],
+          errorColor: Colors.red,
           fontFamily: 'Quicksand',
           textTheme: ThemeData.light().textTheme.copyWith(
-                titleMedium: TextStyle(
+                headline6: TextStyle(
                   fontFamily: 'Opensans',
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
+                button: TextStyle(color: Colors.white),
               ),
           appBarTheme: AppBarTheme(
-              titleTextStyle: TextStyle(
-            fontFamily: 'OpenSans',
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          )),
+            titleTextStyle: TextStyle(
+              fontFamily: 'OpenSans',
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
         home: MyHomePage(),
       ),
@@ -38,20 +44,23 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final List<Transaction> _usertransactions = [
-    Transaction(
-        id: 'T1', title: 'New Shoes', amount: 500.0, date: DateTime.now()),
-    Transaction(
-        id: 'T2',
-        title: 'Weekly Groceries',
-        amount: 700.0,
-        date: DateTime.now()),
   ];
-  void _addNewTransaction(String title, double amount) {
+  List<Transaction> get _recentTransaction {
+    return _usertransactions.where((element) {
+      return element.date.isAfter(
+        DateTime.now().subtract(
+          Duration(days: 7),
+        ),
+      );
+    }).toList();
+  }
+
+  void _addNewTransaction(String title, double amount, DateTime chosenDate) {
     final newTx = Transaction(
-      id: DateTime.now().toString(),
+      id: Uuid().v4(),
       title: title,
       amount: amount,
-      date: DateTime.now(),
+      date: chosenDate,
     );
     setState(() {
       _usertransactions.add(newTx);
@@ -74,6 +83,12 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  void _removeTransaction(String id) {
+    setState(() {
+    _usertransactions.removeWhere((element) => element.id==id);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -91,15 +106,8 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              width: double.infinity,
-              child: Card(
-                color: Colors.pink,
-                elevation: 5.0,
-                child: Text('Chart'),
-              ),
-            ),
-            TransactionList(_usertransactions),
+            Chart(_recentTransaction),
+            TransactionList(_usertransactions,_removeTransaction),
           ],
         ),
       ),
