@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors, use_key_in_widget_constructors, prefer_const_constructors_in_immutables, prefer_const_literals_to_create_immutables, deprecated_member_use
+// ignore_for_file: prefer_const_constructors, use_key_in_widget_constructors, prefer_const_constructors_in_immutables, prefer_const_literals_to_create_immutables, deprecated_member_use, sized_box_for_whitespace
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -11,19 +11,22 @@ class TransactionList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 480,
       child: transactions.isEmpty
-          ? Column(
-              children: [
-                Text(
-                  'No transaction added yet!',
-                  style: Theme.of(context).textTheme.headline6,
-                ),
-                SizedBox(height: 10),
-                Container(
-                    height: 300,
-                    child: Image.asset('assets/image/waiting.png')),
-              ],
+          ? LayoutBuilder(
+              builder: (ctx, constraints) {
+                return Column(
+                  children: [
+                    Text(
+                      'No transaction added yet!',
+                      style: Theme.of(context).textTheme.headline6,
+                    ),
+                    SizedBox(height: 10),
+                    Container(
+                        height: constraints.maxHeight * 0.6,
+                        child: Image.asset('assets/image/waiting.png')),
+                  ],
+                );
+              },
             )
           : ListView.builder(
               itemBuilder: (context, index) {
@@ -47,13 +50,26 @@ class TransactionList extends StatelessWidget {
                     subtitle: Text(
                       DateFormat.yMMMd().format(transactions[index].date),
                     ),
-                    trailing: IconButton(
-                      icon: Icon(Icons.delete),
-                      onPressed: () {
-                        deleteTx(transactions[index].id);
-                      },
-                      color: Theme.of(context).errorColor,
-                    ),
+                    trailing: MediaQuery.of(context).size.width > 500
+                        ? TextButton.icon(
+                            onPressed: () {
+                              deleteTx(transactions[index].id);
+                            },
+                            icon: Icon(Icons.delete),
+                            label: Text(
+                              'Delete',
+                            ),
+                            style: TextButton.styleFrom(
+                              primary: Colors.red,
+                            ),
+                          )
+                        : IconButton(
+                            icon: Icon(Icons.delete),
+                            onPressed: () {
+                              deleteTx(transactions[index].id);
+                            },
+                            color: Theme.of(context).errorColor,
+                          ),
                   ),
                 );
               },
